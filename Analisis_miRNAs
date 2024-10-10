@@ -1,0 +1,41 @@
+install.packages("pacman") #esto es ya que no se tienen instalados los paquetes
+#Creador: Mónica Hernández
+#Ejercicio: Análisis de miRNAs 
+
+library("pacman")
+p_load("dplyr",
+       "ggplot2")
+
+Base_datos <- read_csv(file = "https://raw.githubusercontent.com/ManuelLaraMVZ/Transcript-mica/main/Datos%20completos%20miRNAs%20ejercicio.csv")
+#View(Base_datos) #manda a la tabla en una nueva pestaña
+head(Base_datos) #esto es para que te muestre la tabla en la parte de abajo
+
+Controles <- Base_datos %>% 
+  filter(Type=="Selected Control") %>% 
+  select(-Type)
+Controles  
+
+Promedio_Controles <- Controles %>% 
+  mutate(Prom_Tx=(T1+T2+T3)/3,
+         Prom_Cx=(1+C2+C3)/3) %>% 
+  select(1,8,9) %>% #o se puede poner como (-2,-3,-4,-5,-6,-7) porque son las columnas que no quieres que te salgan
+  filter(miRNA=="U6 snRNA")
+Promedio_Controles
+
+Gen_interes <- Base_datos %>% 
+  filter(Type== "Target") %>% 
+  select(-Type) %>% 
+Gen_interes
+
+Promedio_Genes <- Gen_interes %>% 
+  mutate(Prom_Tx=(T1+T2+T3)/3,
+         Prom_Cx=(C1+C2+C3)/3) %>% 
+  select(1,8,9)
+Promedio_Genes
+head(Promedio_Genes)
+
+Analisis <- Promedio_Genes %>% 
+  mutate(DCT_Cx=Promedio_Genes$Prom_Cx-Promedio_Controles$Prom_Cx,
+         DCT_Tx=Promedio_Genes$Prom_Tx-Promedio_Controles$Prom_Tx) #$ significa que de esa base de datos vas a tomar esa columna
+Analisis
+head(Analisis) #esto nos muestra los primeros 6 datos
