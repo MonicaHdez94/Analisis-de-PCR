@@ -1,0 +1,51 @@
+install.packages("pacman") #esto es ya que no se tienen instalados los paquetes
+
+library("pacman")
+p_load("ggplot2",
+       "vroom",
+       "ggrepel",
+       "dplyr",
+       "matrixTests")
+
+Volcano_data <- vroom(file="https://raw.githubusercontent.com/ManuelLaraMVZ/Transcript-mica/main/Datos%20completos%20miRNAs%20ejercicio.csv")
+head(Volcano_data)
+
+Controles <-Volcano_data %>%
+  filter(Type=="Selected Control") %>% 
+  select(-2)
+head(Controles)
+
+Volcano_data2 <- Volcano_data %>%
+  filter(Type=="Target") %>% 
+  select(-2)
+head(Volcano_data2)
+###################
+#obtencion de promedios
+
+PromedioT1 <- mean(Controles$T1)
+PromedioT2 <- mean(Controles$T2)
+PromedioT3 <- mean(Controles$T3)
+PromedioC1 <- mean(Controles$C1)
+PromedioC2 <- mean(Controles$C2)
+PromedioC3 <- mean(Controles$C3)
+
+Volcano_data3 <- Volcano_data2 %>% 
+  mutate(DCT1=T1-PromedioT1,
+         DCT2= T2-PromedioT2,
+         DCT3= T3-PromedioT3,
+         DCC1= C1-PromedioC1,
+         DCC2= C2-PromedioC2,
+         DCC3= C3-PromedioC3) %>% 
+  select(1,8,9,10,11,12,13) %>% 
+  mutate(PromedioDCT=(DCT1+DCT2+DCT3)/3,
+         PromedioDCC=(DCC1+DCC2+DCC3)/3) %>% 
+  select(1,8,9) %>% 
+  mutate(DosDCT=2^-(PromedioDCT),
+         DosDCC=2^-(PromedioDCC),
+         DosDDCT=DosDCT/DosDCC,
+         FC=DosDDCT) %>% 
+  mutate(LogFC=log2(FC)) %>% 
+  select(1,4,5,7,8) 
+head(Volcano_data3)
+
+Tvalue <- row_t_welch(dosDCT)
